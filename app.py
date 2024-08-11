@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, request
 from api.retrieval import retrieval_blueprint, retriever
 from api.generation import generation_blueprint
+from api.comparative_analysis import comparative_blueprint
+from api.formatted_retrieval import formatted_retrieval_blueprint  # Import the new blueprint
 from config import config
 
 app = Flask(__name__)
@@ -9,11 +11,13 @@ app.config.from_object(config)
 # Register the blueprints
 app.register_blueprint(retrieval_blueprint, url_prefix="/api/retrieval")
 app.register_blueprint(generation_blueprint, url_prefix="/api/generation")
+app.register_blueprint(comparative_blueprint, url_prefix="/api/comparative")
+app.register_blueprint(formatted_retrieval_blueprint, url_prefix="/api/formatted_retrieval")  # Register the new blueprint
 
 @app.route('/api/query', methods=['POST'])
 def query():
     """
-    Route to handle user choice between retrieval-only and generalized query modes.
+    Route to handle user choice between retrieval-only, generalized query modes, comparative analysis, and formatted retrieval.
     """
     data = request.get_json()
 
@@ -21,17 +25,22 @@ def query():
     query = data.get("query", "What is the purpose of this document?")
 
     if mode == "retrieval":
-        # Use retrieval-only mode
         results = retriever.get_relevant_documents(query)
         serialized_results = [{"page_content": doc.page_content, "metadata": doc.metadata} for doc in results]
         return jsonify({"mode": mode, "query": query, "results": serialized_results})
 
     elif mode == "generation":
-        # Use generalized query mode (RAG)
         return app.test_client().post('/api/generation/generate', json={"query": query}).get_data(as_text=True)
     
+    elif mode == "comparative":
+        return app.test_client().post('/api/comparative/compare', json={"comparison_query": query}).get_data(as_text=True)
+    
+    elif mode == "formatted_retrieval":
+        specific_info = data.get("specific_info", "time complexity")
+        return app.test_client().post('/api/formatted_retrieval/formatted_retrieve', json={"query": query, "specific_info": specific_info}).get_data(as_text=True)
+    
     else:
-        return jsonify({"error": "Invalid mode selected. Choose 'retrieval' or 'generation'."}), 400
+        return jsonify({"error": "Invalid mode selected. Choose 'retrieval', 'generation', 'comparative', or 'formatted_retrieval'."}), 400
 
 if __name__ == "__main__":
     app.run(debug=config.DEBUG)
