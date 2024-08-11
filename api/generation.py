@@ -1,30 +1,8 @@
 from flask import Blueprint, jsonify, request
-from langchain_community.chat_models import ChatOllama
-from langchain.prompts import PromptTemplate
-from langchain.schema.output_parser import StrOutputParser
-from langchain.schema.runnable import RunnablePassthrough
+from api.common import format_docs, run_chain, get_prompt_template
 from api.retrieval import retriever
-from config import config
 
 generation_blueprint = Blueprint('generation', __name__)
-
-model = ChatOllama(model=config.MODEL_NAME)
-
-prompt_template = """
-<s> [INST] You are an assistant for question-answering tasks. Use the following pieces of retrieved context 
-to answer the question. If you don't know the answer, just say that you don't know. Use three sentences
-maximum and keep the answer concise. [/INST] </s> 
-[INST] Question: {question} 
-Context: {context} 
-Answer: [/INST]
-"""
-prompt = PromptTemplate(input_variables=["context", "question"], template=prompt_template)
-
-def format_docs(docs):
-    """
-    Formats the documents into a single string for context.
-    """
-    return "\n\n".join(doc.page_content for doc in docs)
 
 @generation_blueprint.route('/generate', methods=['POST'])
 def generate():
@@ -45,10 +23,9 @@ def generate():
             return jsonify({"answer": "I don't know the answer."})
 
         inputs = {"context": context, "question": query}
-
-        chain = RunnablePassthrough() | prompt | model | StrOutputParser()
-
-        answer = chain.invoke(inputs)
+        prompt_template = get_prompt_template("generation")
+        answer = run_chain(prompt_template, inputs)
+        
         return jsonify({"query": query, "answer": answer})
 
     except Exception as e:
