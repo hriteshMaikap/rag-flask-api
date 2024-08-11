@@ -18,19 +18,20 @@ Welcome to the **RAG Flask API**! This project implements a Retrieval-Augmented 
 ```bash
 project_root/
 ├── api/
-│   ├── __init__.py           # Flask blueprint initialization
-│   ├── ingestion.py          # Handles data ingestion into Qdrant
-│   ├── retrieval.py          # Handles information retrieval
-│   ├── generation.py         # Handles answer generation
+│   ├── __init__.py               
+│   ├── common.py                 
+│   ├── comparative_analysis.py   
+│   ├── formatted_retrieval.py    
+│   ├── generation.py             
+│   ├── ingestion.py              
+│   ├── retrieval.py              
 ├── data/
-│   └── Question_Answer.pdf   # Sample PDF document for ingestion
-├── config.py                 # Configuration file for Flask app
-├── venv/                     # Virtual environment directory
-├── app.py                    # Main Flask application entry point
-├── ingest_data.py            # Script to ingest data into Qdrant
-├── requirements.txt          # Python dependencies
-├── README.md                 # Project documentation (this file)
-└── .env                      # Environment variables configuration
+│   └── DSA.pdf       
+├── config.py                     
+├── app.py                        
+├── ingest_data.py                
+├── requirements.txt              
+├── README.md                     
 ```
 
 ## 🚀 Quick Start
