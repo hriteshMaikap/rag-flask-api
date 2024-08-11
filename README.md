@@ -16,7 +16,7 @@ Welcome to the **RAG Flask API**! This project implements a Retrieval-Augmented 
 ## 📂 Project Structure
 
 ```bash
-project_root/
+rag-flask-api/
 ├── api/
 │   ├── __init__.py               
 │   ├── common.py                 
