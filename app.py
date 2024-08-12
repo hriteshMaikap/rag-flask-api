@@ -1,8 +1,7 @@
 from flask import Flask, jsonify, request
 from api.retrieval import retrieval_blueprint, retriever
 from api.generation import generation_blueprint
-from api.comparative_analysis import comparative_blueprint
-from api.formatted_retrieval import formatted_retrieval_blueprint  # Import the new blueprint
+from api.comparative_analysis import comparative_blueprint # Import the new blueprint
 from config import config
 
 app = Flask(__name__)
@@ -12,7 +11,6 @@ app.config.from_object(config)
 app.register_blueprint(retrieval_blueprint, url_prefix="/api/retrieval")
 app.register_blueprint(generation_blueprint, url_prefix="/api/generation")
 app.register_blueprint(comparative_blueprint, url_prefix="/api/comparative")
-app.register_blueprint(formatted_retrieval_blueprint, url_prefix="/api/formatted_retrieval")  # Register the new blueprint
 
 @app.route('/api/query', methods=['POST'])
 def query():
