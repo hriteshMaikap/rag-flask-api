@@ -34,11 +34,6 @@ def query():
     
     elif mode == "comparative":
         return app.test_client().post('/api/comparative/compare', json={"comparison_query": query}).get_data(as_text=True)
-    
-    elif mode == "formatted_retrieval":
-        specific_info = data.get("specific_info", "time complexity")
-        return app.test_client().post('/api/formatted_retrieval/formatted_retrieve', json={"query": query, "specific_info": specific_info}).get_data(as_text=True)
-    
     else:
         return jsonify({"error": "Invalid mode selected. Choose 'retrieval', 'generation', 'comparative', or 'formatted_retrieval'."}), 400
 

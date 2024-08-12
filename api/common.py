@@ -47,13 +47,3 @@ def get_prompt_template(use_case):
             Comparison: [/INST]
             """
         )
-    elif use_case == "formatted_retrieval":
-        return PromptTemplate(
-            input_variables=["context", "specific_info"],
-            template="""
-            <s> [INST] Extract and format the following information concisely: 
-            Requested Information: {specific_info} 
-            Context: {context} 
-            Extracted Information: [/INST]
-            """
-        )
