@@ -102,7 +102,8 @@ python app.py
 
 ```json
 {
-  "query": "Your sample query here"
+  "mode": "generation", //change this mode to operate in different modes, e.g "comparative analysis"
+  "query": "your sample query?"
 }
 ```
 
