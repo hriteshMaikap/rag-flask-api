@@ -20,13 +20,12 @@ rag-flask-api/
 ├── api/
 │   ├── __init__.py               
 │   ├── common.py                 
-│   ├── comparative_analysis.py   
-│   ├── formatted_retrieval.py    
+│   ├── comparative_analysis.py   # a sample to show how to operate in different modes using prompt templates (can be extended)   
 │   ├── generation.py             
 │   ├── ingestion.py              
 │   ├── retrieval.py              
 ├── data/
-│   └── DSA.pdf       
+│   └── data pdfs #according to user requirements      
 ├── config.py                     
 ├── app.py                        
 ├── ingest_data.py                
