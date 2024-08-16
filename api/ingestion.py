@@ -6,6 +6,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import FastEmbedEmbeddings
 import os
 from config import config
+from concurrent.futures import ThreadPoolExecutor
+import os
 
 def create_collection_if_not_exists(client):
     """
@@ -16,7 +18,7 @@ def create_collection_if_not_exists(client):
         if config.COLLECTION_NAME not in [col.name for col in collections]:
             client.create_collection(
                 collection_name=config.COLLECTION_NAME,
-                vectors_config=VectorParams(size=384, distance=Distance.COSINE)
+                vectors_config=VectorParams(size=384, distance=Distance.DOT)
             )
             print(f"Collection `{config.COLLECTION_NAME}` created successfully.")
         else:
@@ -24,45 +26,38 @@ def create_collection_if_not_exists(client):
     except Exception as e:
         print(f"Failed to create collection: {e}")
 
+def process_pdf(pdf_file, client, embeddings, text_splitter):
+    try:
+        pdf_file_path = os.path.join('data', pdf_file)
+        docs = PyPDFLoader(file_path=pdf_file_path).load()
+        chunks = text_splitter.split_documents(docs)
+
+        vector_store = QdrantVectorStore.from_documents(
+            documents=chunks,
+            embedding=embeddings,
+            collection_name=config.COLLECTION_NAME,
+            url=config.QDRANT_URL,
+            api_key=config.QDRANT_API_KEY,
+            force_recreate=True
+        )
+        print(f"Document {pdf_file} ingested successfully.")
+    except Exception as e:
+        print(f"Failed to process {pdf_file}: {e}")
+
 def ingest():
-    """
-    Ingests new data from PDF files in the 'data' folder into Qdrant Cloud DB.
-    """
     data_folder = "data"
-    
     if not os.path.exists(data_folder):
         raise FileNotFoundError(f"Folder {data_folder} does not exist.")
-    
-    client = QdrantClient(url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY)
-    
+
+    client = QdrantClient(url=config.QDRANT_URL, api_key=config.QDRANT_API_KEY, timeout=60)
     create_collection_if_not_exists(client)
-    
-    for pdf_file in os.listdir(data_folder):
-        if pdf_file.endswith(".pdf"):
-            pdf_file_path = os.path.join(data_folder, pdf_file)
-            docs = PyPDFLoader(file_path=pdf_file_path).load()
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-            chunks = text_splitter.split_documents(docs)
-            
-            embeddings = FastEmbedEmbeddings()
 
-            vector_store = QdrantVectorStore.from_documents(
-                documents=chunks,
-                embedding=embeddings,
-                collection_name=config.COLLECTION_NAME,
-                url=config.QDRANT_URL,
-                api_key=config.QDRANT_API_KEY,
-                force_recreate=True  # Recreate the collection if dimensions don't match
-            )
-            print(f"Document {pdf_file} ingested successfully.")
-    
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=200)
+    embeddings = FastEmbedEmbeddings()  
+
+    with ThreadPoolExecutor(max_workers=7) as executor:
+        for pdf_file in os.listdir(data_folder):
+            if pdf_file.endswith(".pdf"):
+                executor.submit(process_pdf, pdf_file, client, embeddings, text_splitter)
+
     print("Ingestion process completed.")
-
-    # Return the vector store retriever for querying purposes
-    return vector_store.as_retriever(
-        search_type="similarity_score_threshold",
-        search_kwargs={
-            "k": 3,
-            "score_threshold": 0.5,
-        },
-    )
